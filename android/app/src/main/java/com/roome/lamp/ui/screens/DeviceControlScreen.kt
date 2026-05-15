@@ -65,9 +65,9 @@ fun DeviceControlScreen(
                 Tab(selected = selectedTab == 0, onClick = { selectedTab = 0 }) {
                     Text("Controls", modifier = Modifier.padding(12.dp))
                 }
-                Tab(selected = selectedTab == 1, onClick = { selectedTab = 1 }) {
-                    Text("Color", modifier = Modifier.padding(12.dp))
-                }
+//                Tab(selected = selectedTab == 1, onClick = { selectedTab = 1 }) {
+//                    Text("Color", modifier = Modifier.padding(12.dp))
+//                }
                 Tab(selected = selectedTab == 2, onClick = { selectedTab = 2 }) {
                     Text("Log", modifier = Modifier.padding(12.dp))
                 }
@@ -75,8 +75,8 @@ fun DeviceControlScreen(
 
             when (selectedTab) {
                 0 -> ControlsTab(viewModel, brightness, warmth, coolness, lightState)
-                1 -> ColorTab(viewModel, brightness, colorR, colorG, colorB)
-                2 -> LogTab(viewModel, logEntries)
+//                1 -> ColorTab(viewModel, brightness, colorR, colorG, colorB)
+                    2 -> LogTab(viewModel, logEntries)
             }
         }
     }
@@ -108,7 +108,7 @@ fun ControlsTab(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Button(
-                    onClick = { viewModel.powerOn(localBrightness) },
+                    onClick = { viewModel.powerOn(30) },
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary
@@ -146,18 +146,18 @@ fun ControlsTab(
                             "State: ${if (lightState.isOn) "ON" else "OFF"} • Brightness: ${lightState.brightness}",
                             style = MaterialTheme.typography.bodyMedium
                         )
-                        if (lightState.warm > 0 || lightState.cool > 0) {
-                            Text(
-                                "Warm: ${lightState.warm} • Cool: ${lightState.cool}",
-                                style = MaterialTheme.typography.bodySmall
-                            )
-                        }
-                        if (lightState.r > 0 || lightState.g > 0 || lightState.b > 0) {
-                            Text(
-                                "RGB: (${lightState.r}, ${lightState.g}, ${lightState.b})",
-                                style = MaterialTheme.typography.bodySmall
-                            )
-                        }
+//                        if (lightState.warm > 0 || lightState.cool > 0) {
+//                            Text(
+//                                "Warm: ${lightState.warm} • Cool: ${lightState.cool}",
+//                                style = MaterialTheme.typography.bodySmall
+//                            )
+//                        }
+//                        if (lightState.r > 0 || lightState.g > 0 || lightState.b > 0) {
+//                            Text(
+//                                "RGB: (${lightState.r}, ${lightState.g}, ${lightState.b})",
+//                                style = MaterialTheme.typography.bodySmall
+//                            )
+//                        }
                     }
                 }
             }
@@ -176,27 +176,27 @@ fun ControlsTab(
         }
 
         // Warm/Cool white
-        item {
-            Text("Warm White: $localWarmth", style = MaterialTheme.typography.titleSmall)
-            Slider(
-                value = localWarmth.toFloat(),
-                onValueChange = { localWarmth = it.toInt() },
-                onValueChangeFinished = { viewModel.setWarmWhite(localWarmth, localCoolness) },
-                valueRange = 0f..100f,
-                steps = 99
-            )
-        }
-
-        item {
-            Text("Cool White: $localCoolness", style = MaterialTheme.typography.titleSmall)
-            Slider(
-                value = localCoolness.toFloat(),
-                onValueChange = { localCoolness = it.toInt() },
-                onValueChangeFinished = { viewModel.setWarmWhite(localWarmth, localCoolness) },
-                valueRange = 0f..100f,
-                steps = 99
-            )
-        }
+//        item {
+//            Text("Warm White: $localWarmth", style = MaterialTheme.typography.titleSmall)
+//            Slider(
+//                value = localWarmth.toFloat(),
+//                onValueChange = { localWarmth = it.toInt() },
+//                onValueChangeFinished = { viewModel.setWarmWhite(localWarmth, localCoolness) },
+//                valueRange = 0f..100f,
+//                steps = 99
+//            )
+//        }
+//
+//        item {
+//            Text("Cool White: $localCoolness", style = MaterialTheme.typography.titleSmall)
+//            Slider(
+//                value = localCoolness.toFloat(),
+//                onValueChange = { localCoolness = it.toInt() },
+//                onValueChangeFinished = { viewModel.setWarmWhite(localWarmth, localCoolness) },
+//                valueRange = 0f..100f,
+//                steps = 99
+//            )
+//        }
 
         // Auto control
         item {
