@@ -28,9 +28,9 @@ DEVICE_NAME_PREFIXES = ("RoomeLightMini", "RoomeLight", "RoomeSwitch", "RoomeSwi
 
 # Known devices — use alias instead of MAC address: -a lamp1
 KNOWN_DEVICES = {
-    "lamp1": "C5:72:80:E2:F2:16",  # RoomeLightMini-f216
-    "lamp2": "FC:FB:D9:CA:76:F5",  # RoomeLightMini-76f5
-    "lamp3": "EB:53:F2:ED:59:3F",  # RoomeLightMini-593f
+    "lamp1": "AA:BB:CC:DD:EE:01",  # Replace with your device MAC
+    "lamp2": "AA:BB:CC:DD:EE:02",  # Replace with your device MAC
+    "lamp3": "AA:BB:CC:DD:EE:03",  # Replace with your device MAC
 }
 
 # Command IDs
@@ -115,10 +115,26 @@ def cmd_auto_control(enable: bool, sensitivity: int = 128) -> bytes:
 
 
 def cmd_sleep_timer(minutes: int) -> bytes:
-    """Set sleep timer in minutes (auto-off after delay)."""
-    high = (minutes >> 8) & 0xFF
-    low = minutes & 0xFF
-    return _build_cmd(CMD_SLEEP_ON, True, high, low, 1)
+    """Set delayed-off timer using CMD_DELAY (0x4B). Time is in seconds on the wire."""
+    seconds = minutes * 60
+    high = (seconds >> 8) & 0xFF
+    low = seconds & 0xFF
+    return _build_cmd(CMD_DELAY, True, high, low)
+
+
+def cmd_sleep_timer_off() -> bytes:
+    """Cancel delayed-off timer."""
+    return _build_cmd(CMD_DELAY, True, 0, 0)
+
+
+def cmd_query_sleep() -> bytes:
+    """Query current delay/sleep timer state."""
+    return _build_cmd(CMD_DELAY, False)
+
+
+def cmd_sleep_mode(enable: bool) -> bytes:
+    """Enable/disable sleep mode (0x47)."""
+    return _build_cmd(CMD_SLEEP_ON, True, 1 if enable else 0)
 
 
 def cmd_query_state() -> bytes:
@@ -362,7 +378,10 @@ Commands:
   color <R> <G> <B>     - Set RGB color (0-255 each)
   warm <warm> <cool>    - Set warm/cool white (0-100 each)
   auto <on|off>         - Auto brightness control
-  sleep <minutes>       - Sleep timer
+  sleep <minutes>       - Delayed off timer (converted to seconds)
+  sleep off             - Cancel delayed off
+  sleep query           - Query sleep timer state
+  sleepmode <on|off>    - Toggle sleep mode (0x47)
   status                - Query current state
   battery               - Query battery level
   firmware              - Query firmware version
@@ -410,7 +429,15 @@ Commands:
                     enabled = parts[1].lower() in ("on", "1", "true")
                     data = cmd_auto_control(enabled)
                 elif cmd_name == "sleep":
-                    data = cmd_sleep_timer(int(parts[1]))
+                    if len(parts) > 1 and parts[1].lower() in ("off", "0", "cancel"):
+                        data = cmd_sleep_timer_off()
+                    elif len(parts) > 1 and parts[1].lower() in ("query", "status", "?"):
+                        data = cmd_query_sleep()
+                    else:
+                        data = cmd_sleep_timer(int(parts[1]))
+                elif cmd_name == "sleepmode":
+                    enabled = len(parts) > 1 and parts[1].lower() in ("on", "1", "true")
+                    data = cmd_sleep_mode(enabled)
                 elif cmd_name == "status":
                     data = cmd_query_state()
                 elif cmd_name == "battery":
@@ -520,7 +547,10 @@ Examples:
         enabled = cmd_parts[1].lower() in ("on", "1", "true")
         commands.append(cmd_auto_control(enabled))
     elif cmd_name == "sleep":
-        commands.append(cmd_sleep_timer(int(cmd_parts[1])))
+        if len(cmd_parts) > 1 and cmd_parts[1].lower() in ("off", "0", "cancel"):
+            commands.append(cmd_sleep_timer_off())
+        else:
+            commands.append(cmd_sleep_timer(int(cmd_parts[1])))
     elif cmd_name == "status":
         commands.append(cmd_query_state())
     elif cmd_name == "ambient":

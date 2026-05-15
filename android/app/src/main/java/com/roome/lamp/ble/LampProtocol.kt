@@ -80,9 +80,10 @@ object LampProtocol {
     }
 
     fun cmdSleepTimer(minutes: Int): ByteArray {
-        val high = (minutes shr 8) and 0xFF
-        val low = minutes and 0xFF
-        return buildCmd(CMD_SLEEP_ON, true, high, low, 1)
+        val seconds = minutes * 60
+        val high = (seconds shr 8) and 0xFF
+        val low = seconds and 0xFF
+        return buildCmd(CMD_DELAY, true, high, low)
     }
 
     fun cmdQueryState(): ByteArray = buildCmd(CMD_BRIGHTNESS, false)

@@ -15,6 +15,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.roome.lamp.ble.BleManager
 import com.roome.lamp.model.LampDevice
+import com.roome.lamp.ui.theme.*
 import com.roome.lamp.viewmodel.LampViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -87,7 +88,11 @@ fun HomeScreen(
                     Text("Scanned Devices", style = MaterialTheme.typography.titleMedium)
                     Button(
                         onClick = { viewModel.startScan() },
-                        enabled = !isScanning
+                        enabled = !isScanning,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = VaporPink,
+                            contentColor = VaporNavy
+                        )
                     ) {
                         if (isScanning) {
                             CircularProgressIndicator(
@@ -211,11 +216,22 @@ fun DeviceCard(
                 )
             }
             if (isConnected && connectionState == BleManager.ConnectionState.READY) {
-                FilledTonalButton(onClick = onControl) {
+                FilledTonalButton(
+                    onClick = onControl,
+                    colors = ButtonDefaults.filledTonalButtonColors(
+                        containerColor = VaporCyan,
+                        contentColor = VaporNavy
+                    )
+                ) {
                     Text("Control")
                 }
             } else if (!isConnected) {
-                OutlinedButton(onClick = onConnect) {
+                OutlinedButton(
+                    onClick = onConnect,
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = VaporPink
+                    )
+                ) {
                     Text("Connect")
                 }
             }

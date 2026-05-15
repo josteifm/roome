@@ -6,7 +6,7 @@
     android:viewportHeight="108">
     <!-- Lightbulb icon centered in adaptive icon safe zone (24dp inset) -->
     <path
-        android:fillColor="#FFFFFF"
+        android:fillColor="#00FFFF"
         android:pathData="M54,28
             C44.06,28 36,36.06 36,46
             C36,52.38 39.38,57.94 44.5,61.0
@@ -18,9 +18,9 @@
             C68.62,57.94 72,52.38 72,46
             C72,36.06 63.94,28 54,28Z" />
     <path
-        android:fillColor="#FFFFFF"
+        android:fillColor="#00FFFF"
         android:pathData="M47.5,74 L60.5,74 L60.5,77 L47.5,77Z" />
     <path
-        android:fillColor="#FFFFFF"
+        android:fillColor="#00FFFF"
         android:pathData="M49.5,80 L58.5,80 L58.5,82 L49.5,82Z" />
 </vector>

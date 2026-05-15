@@ -18,6 +18,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.roome.lamp.ui.theme.*
 import com.roome.lamp.viewmodel.LampViewModel
 import kotlinx.coroutines.launch
 
@@ -111,7 +112,8 @@ fun ControlsTab(
                     onClick = { viewModel.powerOn(30) },
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary
+                        containerColor = VaporCyan,
+                        contentColor = VaporNavy
                     )
                 ) {
                     Icon(Icons.Default.LightMode, null, Modifier.size(20.dp))
@@ -122,7 +124,8 @@ fun ControlsTab(
                     onClick = { viewModel.powerOff() },
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.error
+                        containerColor = VaporHotPink,
+                        contentColor = Color.White
                     )
                 ) {
                     Icon(Icons.Default.DarkMode, null, Modifier.size(20.dp))

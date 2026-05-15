@@ -2,13 +2,20 @@ package com.roome.lamp.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
-
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
+// Vaporwave palette
+val VaporPink = Color(0xFFFF6EC7)
+val VaporHotPink = Color(0xFFFF10F0)
+val VaporCyan = Color(0xFF00FFFF)
+val VaporMint = Color(0xFF7AFFEC)
+val VaporLavender = Color(0xFFB388FF)
+val VaporPurple = Color(0xFF7C4DFF)
+val VaporDeepPurple = Color(0xFF1A0033)
+val VaporNavy = Color(0xFF0D0221)
+val VaporDarkSurface = Color(0xFF190038)
+val VaporCardSurface = Color(0xFF2A0054)
+val VaporMidPurple = Color(0xFF3D0070)
+val VaporTextPrimary = Color(0xFFE0D0FF)
+val VaporTextSecondary = Color(0xFFB0A0D0)
 
 val LampYellow = Color(0xFFFFC107)
 val LampOrange = Color(0xFFFF9800)

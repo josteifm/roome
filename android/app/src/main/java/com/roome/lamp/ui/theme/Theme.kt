@@ -1,40 +1,46 @@
 package com.roome.lamp.ui.theme
 
-import android.os.Build
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Color
 
-private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
-)
-
-private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
+private val VaporwaveColorScheme = darkColorScheme(
+    primary = VaporCyan,
+    onPrimary = VaporNavy,
+    primaryContainer = VaporMidPurple,
+    onPrimaryContainer = VaporCyan,
+    secondary = VaporPink,
+    onSecondary = VaporNavy,
+    secondaryContainer = VaporCardSurface,
+    onSecondaryContainer = VaporPink,
+    tertiary = VaporLavender,
+    onTertiary = VaporNavy,
+    tertiaryContainer = VaporMidPurple,
+    onTertiaryContainer = VaporLavender,
+    error = Color(0xFFFF5252),
+    onError = Color.White,
+    errorContainer = Color(0xFF5C0011),
+    onErrorContainer = Color(0xFFFFB4AB),
+    background = VaporNavy,
+    onBackground = VaporTextPrimary,
+    surface = VaporDeepPurple,
+    onSurface = VaporTextPrimary,
+    surfaceVariant = VaporDarkSurface,
+    onSurfaceVariant = VaporTextSecondary,
+    outline = VaporMidPurple,
+    outlineVariant = VaporCardSurface,
+    inverseSurface = VaporMint,
+    inverseOnSurface = VaporNavy,
+    inversePrimary = VaporPurple,
+    surfaceTint = VaporCyan
 )
 
 @Composable
 fun RoomeLampTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
-    }
-
     MaterialTheme(
-        colorScheme = colorScheme,
+        colorScheme = VaporwaveColorScheme,
         content = content
     )
 }
