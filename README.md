@@ -129,7 +129,7 @@ A handshake is required before commands are accepted:
 | Query brightness | `01 4F 00` | Returns current brightness |
 | Query firmware | `01 83 00 00 00 00` | Returns version |
 | Auto control | `01 4A 01 <enable> <sensitivity>` | 0/1 enable, 0-255 sensitivity |
-| Sleep timer | `01 47 01 <high> <low> 01` | Minutes as 16-bit value |
+| Sleep timer | `01 4B 01 <high> <low>` | Seconds as 16-bit value |
 
 ### Response format
 
@@ -144,3 +144,38 @@ Status pushes (`0x81`) contain on/off state and brightness. The app sends a rece
 - The device clips brightness=0 to a minimum of ~3. There is no separate "off" command; the script treats brightness ≤ 3 as OFF.
 - Battery query (`0x7E`) is only supported on Roome Switch devices, not lights.
 - The `0x49` read command returns stored defaults (all zeros), not live state. Use `0x4F` read for actual brightness.
+
+## Android App
+
+A native Android app with the same BLE control functionality, built with Kotlin and Jetpack Compose.
+
+### Features
+
+- **Scan** for nearby BLE devices
+- **Save** discovered devices with custom names (persisted across app restarts)
+- **Rename** or **delete** saved devices
+- On/off, brightness, warm/cool white, RGB color control
+- Color presets (red, green, blue, yellow, purple, cyan)
+- Auto brightness, sleep timer
+- Status, battery, and firmware queries
+- Raw hex command input
+- BLE log viewer
+
+### Building
+
+Open the `android/` folder in Android Studio, or build from the command line:
+
+```bash
+cd android
+./gradlew assembleDebug
+```
+
+The debug APK will be at `android/app/build/outputs/apk/debug/app-debug.apk`.
+
+For a signed release build: **Build > Generate Signed App Bundle / APK** in Android Studio.
+
+### Requirements
+
+- Android 8.0+ (API 26)
+- Bluetooth LE support
+- Location permission (required by Android for BLE scanning)

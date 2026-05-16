@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.roome.lamp.ble.BleManager
 import com.roome.lamp.ble.LampProtocol
+import com.roome.lamp.data.DeviceStorage
 import com.roome.lamp.model.LampDevice
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -12,13 +13,15 @@ import kotlinx.coroutines.launch
 class LampViewModel(application: Application) : AndroidViewModel(application) {
 
     val bleManager = BleManager(application.applicationContext)
+    private val deviceStorage = DeviceStorage(application.applicationContext)
 
     val connectionState = bleManager.connectionState
     val connectedAddress = bleManager.connectedAddress
     val scannedDevices = bleManager.scannedDevices
     val isScanning = bleManager.isScanning
 
-    val knownDevices: List<LampDevice> = LampDevice.knownDevicesList()
+    private val _savedDevices = MutableStateFlow<List<LampDevice>>(emptyList())
+    val savedDevices: StateFlow<List<LampDevice>> = _savedDevices
 
     // Log entries
     private val _logEntries = MutableStateFlow<List<String>>(emptyList())
@@ -46,6 +49,7 @@ class LampViewModel(application: Application) : AndroidViewModel(application) {
     val colorB: StateFlow<Int> = _colorB
 
     init {
+        reloadSavedDevices()
         // Collect log messages
         viewModelScope.launch {
             bleManager.log.collect { msg ->
@@ -136,6 +140,31 @@ class LampViewModel(application: Application) : AndroidViewModel(application) {
 
     fun clearLog() {
         _logEntries.value = emptyList()
+    }
+
+    // --- Saved devices ---
+
+    private fun reloadSavedDevices() {
+        _savedDevices.value = deviceStorage.loadDevices()
+    }
+
+    fun saveDevice(device: LampDevice, alias: String) {
+        deviceStorage.saveDevice(device.copy(alias = alias))
+        reloadSavedDevices()
+    }
+
+    fun renameDevice(address: String, newAlias: String) {
+        deviceStorage.renameDevice(address, newAlias)
+        reloadSavedDevices()
+    }
+
+    fun removeDevice(address: String) {
+        deviceStorage.removeDevice(address)
+        reloadSavedDevices()
+    }
+
+    fun isDeviceSaved(address: String): Boolean {
+        return _savedDevices.value.any { it.address.equals(address, ignoreCase = true) }
     }
 
     override fun onCleared() {

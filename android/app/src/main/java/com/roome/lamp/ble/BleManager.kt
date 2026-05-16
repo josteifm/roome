@@ -74,9 +74,7 @@ class BleManager(private val context: Context) {
 
                 val existing = found[addr]
                 if (existing == null || rssi > existing.rssi) {
-                    val alias = LampDevice.KNOWN_DEVICES.entries
-                        .firstOrNull { it.value.equals(addr, ignoreCase = true) }?.key
-                    found[addr] = LampDevice(name = name, address = addr, alias = alias, rssi = rssi)
+                    found[addr] = LampDevice(name = name, address = addr, rssi = rssi)
                     _scannedDevices.value = found.values
                         .sortedWith(compareByDescending<LampDevice> { it.isRoomeDevice }.thenByDescending { it.rssi })
                 }

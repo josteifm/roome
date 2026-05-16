@@ -1,7 +1,5 @@
 package com.roome.lamp.ui.screens
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -28,6 +26,15 @@ fun HomeScreen(
     val connectedAddress by viewModel.connectedAddress.collectAsState()
     val scannedDevices by viewModel.scannedDevices.collectAsState()
     val isScanning by viewModel.isScanning.collectAsState()
+    val savedDevices by viewModel.savedDevices.collectAsState()
+
+    // Dialog state
+    var showSaveDialog by remember { mutableStateOf(false) }
+    var deviceToSave by remember { mutableStateOf<LampDevice?>(null) }
+    var showRenameDialog by remember { mutableStateOf(false) }
+    var deviceToRename by remember { mutableStateOf<LampDevice?>(null) }
+    var showDeleteConfirm by remember { mutableStateOf(false) }
+    var deviceToDelete by remember { mutableStateOf<LampDevice?>(null) }
 
     Scaffold(
         topBar = {
@@ -57,22 +64,35 @@ fun HomeScreen(
                 ConnectionStatusCard(connectionState, connectedAddress)
             }
 
-            // Known devices
+            // Saved devices
             item {
                 Text(
-                    "Known Devices",
+                    "Saved Devices",
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.padding(top = 16.dp, bottom = 4.dp)
                 )
             }
 
-            items(viewModel.knownDevices) { device ->
-                DeviceCard(
+            if (savedDevices.isEmpty()) {
+                item {
+                    Text(
+                        "No saved devices. Scan and save a device below.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(vertical = 4.dp)
+                    )
+                }
+            }
+
+            items(savedDevices, key = { "saved_${it.address}" }) { device ->
+                SavedDeviceCard(
                     device = device,
                     isConnected = connectedAddress?.equals(device.address, ignoreCase = true) == true,
                     connectionState = connectionState,
                     onConnect = { viewModel.connect(device.address) },
-                    onControl = { onDeviceSelected(device.address) }
+                    onControl = { onDeviceSelected(device.address) },
+                    onRename = { deviceToRename = device; showRenameDialog = true },
+                    onDelete = { deviceToDelete = device; showDeleteConfirm = true }
                 )
             }
 
@@ -110,19 +130,110 @@ fun HomeScreen(
                 }
             }
 
-            items(scannedDevices) { device ->
-                DeviceCard(
+            items(scannedDevices, key = { "scan_${it.address}" }) { device ->
+                ScannedDeviceCard(
                     device = device,
                     isConnected = connectedAddress?.equals(device.address, ignoreCase = true) == true,
+                    isSaved = viewModel.isDeviceSaved(device.address),
                     connectionState = connectionState,
                     onConnect = { viewModel.connect(device.address) },
-                    onControl = { onDeviceSelected(device.address) }
+                    onControl = { onDeviceSelected(device.address) },
+                    onSave = { deviceToSave = device; showSaveDialog = true }
                 )
             }
 
             item { Spacer(Modifier.height(16.dp)) }
         }
     }
+
+    // Save dialog
+    if (showSaveDialog && deviceToSave != null) {
+        SaveDeviceDialog(
+            device = deviceToSave!!,
+            onDismiss = { showSaveDialog = false; deviceToSave = null },
+            onSave = { alias ->
+                viewModel.saveDevice(deviceToSave!!, alias)
+                showSaveDialog = false
+                deviceToSave = null
+            }
+        )
+    }
+
+    // Rename dialog
+    if (showRenameDialog && deviceToRename != null) {
+        SaveDeviceDialog(
+            device = deviceToRename!!,
+            initialName = deviceToRename!!.alias ?: "",
+            title = "Rename Device",
+            onDismiss = { showRenameDialog = false; deviceToRename = null },
+            onSave = { alias ->
+                viewModel.renameDevice(deviceToRename!!.address, alias)
+                showRenameDialog = false
+                deviceToRename = null
+            }
+        )
+    }
+
+    // Delete confirmation
+    if (showDeleteConfirm && deviceToDelete != null) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirm = false; deviceToDelete = null },
+            title = { Text("Remove Device") },
+            text = { Text("Remove \"${deviceToDelete!!.displayName}\" from saved devices?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.removeDevice(deviceToDelete!!.address)
+                    showDeleteConfirm = false
+                    deviceToDelete = null
+                }) { Text("Remove") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirm = false; deviceToDelete = null }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+}
+
+@Composable
+fun SaveDeviceDialog(
+    device: LampDevice,
+    initialName: String = device.name.ifEmpty { device.address },
+    title: String = "Save Device",
+    onDismiss: () -> Unit,
+    onSave: (String) -> Unit
+) {
+    var name by remember { mutableStateOf(initialName) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(device.address, style = MaterialTheme.typography.bodySmall)
+                if (device.name.isNotEmpty()) {
+                    Text(device.name, style = MaterialTheme.typography.bodySmall)
+                }
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Device name") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { onSave(name) },
+                enabled = name.isNotBlank()
+            ) { Text("Save") }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Cancel") }
+        }
+    )
 }
 
 @Composable
@@ -172,16 +283,82 @@ fun ConnectionStatusCard(state: BleManager.ConnectionState, address: String?) {
 }
 
 @Composable
-fun DeviceCard(
+fun SavedDeviceCard(
     device: LampDevice,
     isConnected: Boolean,
     connectionState: BleManager.ConnectionState,
     onConnect: () -> Unit,
-    onControl: () -> Unit
+    onControl: () -> Unit,
+    onRename: () -> Unit,
+    onDelete: () -> Unit
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth()
-    ) {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                Icons.Default.Lightbulb,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary
+            )
+            Spacer(Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    device.displayName,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Medium
+                )
+                Text(
+                    buildString {
+                        append(device.address)
+                        if (device.name.isNotEmpty() && device.alias != null) {
+                            append(" • ${device.name}")
+                        }
+                    },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            // Edit/delete actions
+            IconButton(onClick = onRename, modifier = Modifier.size(32.dp)) {
+                Icon(Icons.Default.Edit, "Rename", Modifier.size(18.dp))
+            }
+            IconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) {
+                Icon(Icons.Default.Delete, "Delete", Modifier.size(18.dp))
+            }
+            Spacer(Modifier.width(4.dp))
+            if (isConnected && connectionState == BleManager.ConnectionState.READY) {
+                FilledTonalButton(
+                    onClick = onControl,
+                    colors = ButtonDefaults.filledTonalButtonColors(
+                        containerColor = VaporCyan,
+                        contentColor = VaporNavy
+                    )
+                ) { Text("Control") }
+            } else if (!isConnected) {
+                OutlinedButton(
+                    onClick = onConnect,
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = VaporPink)
+                ) { Text("Connect") }
+            }
+        }
+    }
+}
+
+@Composable
+fun ScannedDeviceCard(
+    device: LampDevice,
+    isConnected: Boolean,
+    isSaved: Boolean,
+    connectionState: BleManager.ConnectionState,
+    onConnect: () -> Unit,
+    onControl: () -> Unit,
+    onSave: () -> Unit
+) {
+    Card(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -204,9 +381,6 @@ fun DeviceCard(
                 Text(
                     buildString {
                         append(device.address)
-                        if (device.name.isNotEmpty() && device.alias != null) {
-                            append(" • ${device.name}")
-                        }
                         if (device.rssi != 0) {
                             append(" • ${device.rssi} dBm")
                         }
@@ -215,6 +389,12 @@ fun DeviceCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
+            if (!isSaved) {
+                IconButton(onClick = onSave, modifier = Modifier.size(32.dp)) {
+                    Icon(Icons.Default.Save, "Save", Modifier.size(18.dp))
+                }
+            }
+            Spacer(Modifier.width(4.dp))
             if (isConnected && connectionState == BleManager.ConnectionState.READY) {
                 FilledTonalButton(
                     onClick = onControl,
@@ -222,18 +402,12 @@ fun DeviceCard(
                         containerColor = VaporCyan,
                         contentColor = VaporNavy
                     )
-                ) {
-                    Text("Control")
-                }
+                ) { Text("Control") }
             } else if (!isConnected) {
                 OutlinedButton(
                     onClick = onConnect,
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = VaporPink
-                    )
-                ) {
-                    Text("Connect")
-                }
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = VaporPink)
+                ) { Text("Connect") }
             }
         }
     }

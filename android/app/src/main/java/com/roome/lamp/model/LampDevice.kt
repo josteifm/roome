@@ -14,15 +14,5 @@ data class LampDevice(
 
     companion object {
         private val DEVICE_NAME_PREFIXES = listOf("RoomeLightMini", "RoomeLight", "RoomeSwitch", "RoomeSwitchAce")
-
-        val KNOWN_DEVICES = mapOf(
-            "lamp1" to "AA:BB:CC:DD:EE:01",  // Replace with your device MAC
-            "lamp2" to "AA:BB:CC:DD:EE:02",  // Replace with your device MAC
-            "lamp3" to "AA:BB:CC:DD:EE:03",  // Replace with your device MAC
-        )
-
-        fun knownDevicesList(): List<LampDevice> = KNOWN_DEVICES.map { (alias, address) ->
-            LampDevice(name = "", address = address, alias = alias)
-        }
     }
 }
